@@ -379,9 +379,9 @@ async def check_ollama_status_endpoint():
 
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Starting Translation API")
-    print(f"📡 Ollama URL: {OLLAMA_BASE_URL}")
-    print(f"🤖 Model: {OLLAMA_MODEL}")
-    print("🌐 API will be available at: http://localhost:8000")
-    print("📚 API docs at: http://localhost:8000/docs")
+    print("Starting Translation API")
+    print(f"Ollama URL: {OLLAMA_BASE_URL}")
+    print(f"Model: {OLLAMA_MODEL}")
+    print("API will be available at: http://localhost:8000")
+    print("API docs at: http://localhost:8000/docs")
     uvicorn.run(app, host="0.0.0.0", port=8000)
