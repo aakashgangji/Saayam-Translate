@@ -2,20 +2,17 @@
 
 A powerful, self-hosted multilingual translation service built with FastAPI and Ollama using the Mistral model. This API provides high-quality translations without requiring external API keys or internet connectivity.
 
-## 🌟 Key Features
+## Key Features
 
-- 🤖 **Local AI Translation** - Powered by Ollama with Mistral model
-- 🔑 **No API Keys Required** - Completely self-hosted solution
-- 🌍 **100+ Languages** - Comprehensive language support
-- 🔍 **Auto Language Detection** - Automatically detects source language
-- 🎯 **High-Quality Translations** - Comparable to commercial APIs
-- 🛠️ **Fallback Support** - Basic translation when Ollama is unavailable
-- 🚀 **Fast & Efficient** - Built with FastAPI for high performance
-- 📚 **Auto-Generated Docs** - Interactive API documentation
-- 🔒 **Privacy-First** - All data stays local, no external calls
-- 💰 **Cost-Free** - No usage fees or API costs
+- **Local AI Translation** - Powered by Ollama with Mistral model
+- **100+ Languages** - Comprehensive language support
+- **Auto Language Detection** - Automatically detects source language
+- **Fallback Support** - Basic translation when Ollama is unavailable
+- **Fast & Efficient** - Built with FastAPI for high performance
+- **Privacy-First** - All data stays local, no external calls
+- **Cost-Free** - No usage fees or API costs
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.8+
@@ -39,27 +36,36 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull mistral
 ```
 
-### Step 3: Install Python Dependencies
+### Step 3: Create and Activate Conda Environment
+```bash
+# Create conda environment
+conda create -n translate python=3.9
+
+# Activate conda environment
+conda activate translate
+```
+
+### Step 4: Install Python Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: Start Ollama Service
+### Step 5: Start Ollama Service
 ```bash
 ollama serve
 ```
 
-### Step 5: Run the Translation API
+### Step 6: Run the Translation API
 ```bash
 python main.py
 ```
 
-### Step 6: Test the API
+### Step 7: Test the API
 ```bash
 python test_translate.py
 ```
 
-## 📡 API Reference
+## API Reference
 
 ### Base URL
 ```
@@ -158,7 +164,7 @@ GET /ollama-status
 }
 ```
 
-## 💻 Usage Examples
+## Usage Examples
 
 ### Python
 ```python
@@ -221,7 +227,7 @@ const result = await response.json();
 console.log(`Translated: ${result.translated_text}`);
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Ollama Settings
 Modify the configuration in `main.py`:
@@ -356,7 +362,7 @@ OLLAMA_MODEL = "mistral:latest"
 "temperature": 0.2
 ```
 
-## 📊 Performance Metrics
+## Performance Metrics
 
 - **Translation Speed**: 1-5 seconds per translation
 - **Memory Usage**: ~4GB RAM (Mistral model)
@@ -364,7 +370,7 @@ OLLAMA_MODEL = "mistral:latest"
 - **Throughput**: 10-20 translations per minute
 - **Offline Capability**: 100% offline once model is downloaded
 
-## 🛡️ Security & Privacy
+## Security & Privacy
 
 - **No External Calls**: All processing happens locally
 - **No Data Logging**: No translation data is stored
@@ -372,7 +378,7 @@ OLLAMA_MODEL = "mistral:latest"
 - **Self-Hosted**: Complete control over your infrastructure
 - **Open Source**: Transparent and auditable code
 
-## 📚 API Documentation
+## API Documentation
 
 Once the server is running, access the interactive documentation:
 
@@ -380,7 +386,15 @@ Once the server is running, access the interactive documentation:
 - **ReDoc**: http://localhost:8000/redoc
 - **OpenAPI JSON**: http://localhost:8000/openapi.json
 
-## 🧪 Testing
+### Interactive API Documentation
+Visit **http://localhost:8000/docs** in your browser to access the interactive Swagger UI documentation. This provides:
+- Complete API endpoint documentation
+- Interactive testing interface
+- Request/response examples
+- Schema definitions
+- Try-it-out functionality for all endpoints
+
+## Testing
 
 ### Run All Tests
 ```bash
@@ -403,7 +417,7 @@ curl -X POST "http://localhost:8000/translate" \
 curl http://localhost:8000/health
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how you can help:
 
@@ -434,18 +448,18 @@ python test_translate.py
 black main.py test_translate.py
 ```
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Ollama** - For providing the local LLM infrastructure
 - **Mistral AI** - For the excellent Mistral model
 - **FastAPI** - For the high-performance web framework
 - **Open Source Community** - For various supporting libraries
 
-## 📞 Support
+## Support
 
 If you encounter any issues:
 
@@ -456,4 +470,4 @@ If you encounter any issues:
 
 ---
 
-**Happy Translating! 🌍✨**
+**Happy Translating!✨**
