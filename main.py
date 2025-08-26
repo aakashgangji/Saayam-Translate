@@ -9,7 +9,6 @@ import logging
 # Fallback translator functions
 def create_fallback_response(text: str, detected_lang: str, target_lang: str) -> dict:
     """Create a fallback response when Ollama is not available."""
-    # Simple fallback translations for common phrases
     fallback_translations = {
         "hello": {
             "Spanish": "hola",
