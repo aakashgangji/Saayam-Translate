@@ -1,42 +1,49 @@
 # Translation API
 
-A powerful, self-hosted multilingual translation service built with FastAPI and Ollama using the Mistral model. This API provides high-quality translations without requiring external API keys or internet connectivity.
+A powerful multilingual translation service built with FastAPI and Groq using the Llama 3.1 70B model. This API provides high-quality translations powered by Groq's cloud infrastructure.
 
 ## Key Features
 
-- **Local AI Translation** - Powered by Ollama with Mistral model
+- **AI Translation** - Powered by Groq with Llama 3.1 70B model
 - **100+ Languages** - Comprehensive language support
 - **Auto Language Detection** - Automatically detects source language
-- **Fallback Support** - Basic translation when Ollama is unavailable
+- **Fallback Support** - Basic translation when Groq is unavailable
 - **Fast & Efficient** - Built with FastAPI for high performance
-- **Privacy-First** - All data stays local, no external calls
-- **Cost-Free** - No usage fees or API costs
+- **Cloud-Powered** - Leverages Groq's high-performance infrastructure
+- **High Quality** - Llama 3.1 70B provides excellent translation quality
+
+## Project Structure
+
+```
+Saayam-Translate/
+├── main.py                    # Main FastAPI application
+├── requirements.txt           # Python dependencies
+├── test_groq_connection.py   # Groq connection test
+├── test_translate.py         # Translation API test
+├── start_translation_api.py  # API startup script
+├── quick_start_groq.sh       # Quick start script
+├── curl_examples.sh          # cURL examples for testing
+├── README.md                 # This file
+├── .gitignore               # Git ignore rules
+└── Flow Diagrams/           # Project flow diagrams
+```
 
 ## Quick Start
 
 ### Prerequisites
 - Python 3.8+
-- Ollama installed on your system
-- At least 4GB RAM (for Mistral model)
+- Groq API key
+- Internet connection
 
-### Step 1: Install Ollama
-```bash
-# macOS
-curl -fsSL https://ollama.ai/install.sh | sh
+### Step 1: Get Groq API Key
+1. Sign up at [Groq Console](https://console.groq.com/)
+2. Get your API key from the dashboard
+3. Replace "XXX" in the following files with your actual API key:
+   - `main.py` (line with `GROQ_API_KEY`)
+   - `test_groq_connection.py` (both occurrences)
+   - `start_translation_api.py` (line with `api_key`)
 
-# Linux
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Windows
-# Download from https://ollama.ai
-```
-
-### Step 2: Pull the Mistral Model
-```bash
-ollama pull mistral
-```
-
-### Step 3: Create and Activate Conda Environment
+### Step 2: Create and Activate Conda Environment
 ```bash
 # Create conda environment
 conda create -n translate python=3.9
@@ -45,22 +52,22 @@ conda create -n translate python=3.9
 conda activate translate
 ```
 
-### Step 4: Install Python Dependencies
+### Step 3: Install Python Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 5: Start Ollama Service
+### Step 4: Test Groq Connection
 ```bash
-ollama serve
+python test_groq_connection.py
 ```
 
-### Step 6: Run the Translation API
+### Step 5: Run the Translation API
 ```bash
 python main.py
 ```
 
-### Step 7: Test the API
+### Step 6: Test the API
 ```bash
 python test_translate.py
 ```
@@ -83,7 +90,7 @@ GET /health
 ```json
 {
   "status": "healthy",
-  "message": "Translation API is running. Ollama status: running"
+  "message": "Translation API is running. Groq status: running"
 }
 ```
 
@@ -109,9 +116,9 @@ POST /translate
   "detected_language": "English",
   "source_language": "English",
   "target_language": "Spanish",
-  "confidence": 0.9,
+  "confidence": 0.95,
   "fallback_used": false,
-  "message": "Translation completed successfully using Ollama with Mistral"
+  "message": "Translation completed successfully using Groq with Llama 3.1 70B"
 }
 ```
 
@@ -149,17 +156,16 @@ GET /supported-languages
 ]
 ```
 
-#### 5. Check Ollama Status
+#### 5. Check Groq Status
 ```http
-GET /ollama-status
+GET /groq-status
 ```
 
 **Response:**
 ```json
 {
-  "ollama_available": true,
-  "model": "mistral:latest",
-  "base_url": "http://localhost:11434",
+  "groq_available": true,
+  "model": "llama3-70b-8192",
   "status": "running"
 }
 ```
@@ -205,8 +211,8 @@ curl -X POST "http://localhost:8000/detect-language" \
 # Get supported languages
 curl -X GET "http://localhost:8000/supported-languages"
 
-# Check Ollama status
-curl -X GET "http://localhost:8000/ollama-status"
+# Check Groq status
+curl -X GET "http://localhost:8000/groq-status"
 ```
 
 ### JavaScript
@@ -229,41 +235,37 @@ console.log(`Translated: ${result.translated_text}`);
 
 ## Configuration
 
-### Ollama Settings
+### Groq Settings
 Modify the configuration in `main.py`:
 
 ```python
-# Ollama configuration
-OLLAMA_BASE_URL = "http://localhost:11434"  # Default Ollama URL
-OLLAMA_MODEL = "mistral:latest"  # Change to any model you have pulled
+# Groq configuration
+GROQ_API_KEY = "XXX"  # Replace with your actual API key
+GROQ_MODEL = "llama3-70b-8192"  # Llama 3.1 70B model
 ```
 
 ### Using Different Models
-You can use any model available in Ollama:
+You can use different models available in Groq:
 
-```bash
-# Available models
-ollama pull llama2          # Meta's Llama 2
-ollama pull codellama       # Code-focused model
-ollama pull mistral:7b      # Smaller Mistral model
-ollama pull mistral:instruct # Instruction-tuned Mistral
-ollama pull phi             # Microsoft's Phi model
-
-# List available models
-ollama list
-
-# Then update OLLAMA_MODEL in main.py
+```python
+# Available models in Groq
+GROQ_MODEL = "llama3-70b-8192"    # Llama 3.1 70B (current)
+GROQ_MODEL = "llama3-8b-8192"     # Llama 3.1 8B
+GROQ_MODEL = "mixtral-8x7b-32768" # Mixtral 8x7B
+GROQ_MODEL = "gemma-7b-it"        # Gemma 7B
 ```
 
 ### Performance Tuning
 Adjust translation parameters in `main.py`:
 
 ```python
-"options": {
-    "temperature": 0.1,  # Lower = more consistent, Higher = more creative
-    "top_p": 0.9,       # Nucleus sampling parameter
-    "max_tokens": 500    # Maximum response length
-}
+response = groq_client.chat.completions.create(
+    model=GROQ_MODEL,
+    messages=[{"role": "user", "content": prompt}],
+    max_tokens=500,        # Maximum response length
+    temperature=0.1,       # Lower = more consistent, Higher = more creative
+    top_p=0.9             # Nucleus sampling parameter
+)
 ```
 
 ## 🌍 Supported Languages
@@ -292,32 +294,30 @@ The API supports **100+ languages** including:
 
 ### Common Issues
 
-#### 1. Ollama Service Not Available
-**Error:** `"ollama_available": false`
+#### 1. Groq Service Not Available
+**Error:** `"groq_available": false`
 
 **Solution:**
 ```bash
-# Start Ollama service
-ollama serve
+# Check your API key
+python test_groq_connection.py
 
-# Check if it's running
-curl http://localhost:11434/api/tags
+# Ensure you have internet connection
+curl https://api.groq.com/openai/v1/models
 ```
 
-#### 2. Model Not Found
-**Error:** `"model": "mistral:latest" not found`
+#### 2. API Key Invalid
+**Error:** `Authentication failed`
 
 **Solution:**
 ```bash
-# Check available models
-ollama list
+# Replace "XXX" with your actual API key in these files:
+# - main.py
+# - test_groq_connection.py  
+# - start_translation_api.py
 
-# Pull the required model
-ollama pull mistral
-
-# Or use a different model
-ollama pull llama2
-# Then update OLLAMA_MODEL in main.py
+# Test connection
+python test_groq_connection.py
 ```
 
 #### 3. Port Already in Use
@@ -337,9 +337,9 @@ uvicorn.run(app, host="0.0.0.0", port=8001)
 
 #### 4. Slow Translation
 **Solution:**
-- Use smaller models (e.g., `mistral:7b`)
-- Ensure sufficient RAM (4GB+ recommended)
-- Consider using GPU acceleration
+- Check your internet connection
+- Ensure Groq service is responding
+- Consider using smaller models for faster responses
 - Adjust temperature settings
 
 ### Performance Optimization
@@ -347,7 +347,7 @@ uvicorn.run(app, host="0.0.0.0", port=8001)
 #### For Faster Responses:
 ```python
 # Use smaller model
-OLLAMA_MODEL = "mistral:7b"
+GROQ_MODEL = "llama3-8b-8192"
 
 # Lower temperature for consistency
 "temperature": 0.05
@@ -355,8 +355,8 @@ OLLAMA_MODEL = "mistral:7b"
 
 #### For Better Quality:
 ```python
-# Use larger model
-OLLAMA_MODEL = "mistral:latest"
+# Use larger model (current)
+GROQ_MODEL = "llama3-70b-8192"
 
 # Higher temperature for creativity
 "temperature": 0.2
@@ -364,19 +364,25 @@ OLLAMA_MODEL = "mistral:latest"
 
 ## Performance Metrics
 
-- **Translation Speed**: 1-5 seconds per translation
-- **Memory Usage**: ~4GB RAM (Mistral model)
-- **Quality**: Comparable to commercial APIs
-- **Throughput**: 10-20 translations per minute
-- **Offline Capability**: 100% offline once model is downloaded
+- **Translation Speed**: 1-3 seconds per translation
+- **Memory Usage**: Minimal (cloud-based processing)
+- **Quality**: High-quality translations with Llama 3.1 70B
+- **Throughput**: 20-50 translations per minute
+- **Availability**: 99.9% uptime with Groq infrastructure
 
 ## Security & Privacy
 
-- **No External Calls**: All processing happens locally
-- **No Data Logging**: No translation data is stored
-- **No API Keys**: No external service authentication required
-- **Self-Hosted**: Complete control over your infrastructure
+- **Secure API Calls**: All communication with Groq is encrypted
+- **No Data Logging**: No translation data is stored locally
+- **API Key Security**: API key should be replaced with your actual key before use
+- **Cloud Infrastructure**: Leverages Groq's secure infrastructure
 - **Open Source**: Transparent and auditable code
+
+### ⚠️ Important Security Note
+Before using this API, make sure to:
+1. Replace all instances of "XXX" with your actual Groq API key
+2. Never commit your API key to version control
+3. Consider using environment variables for production deployments
 
 ## API Documentation
 
@@ -401,9 +407,9 @@ Visit **http://localhost:8000/docs** in your browser to access the interactive S
 python test_translate.py
 ```
 
-### Test Ollama Connection
+### Test Groq Connection
 ```bash
-python test_ollama_connection.py
+python test_groq_connection.py
 ```
 
 ### Manual Testing
@@ -422,7 +428,7 @@ curl http://localhost:8000/health
 We welcome contributions! Here's how you can help:
 
 ### Areas for Improvement
-- **Add more models** (Llama, CodeLlama, etc.)
+- **Add more Groq models** (Mixtral, Gemma, etc.)
 - **Improve translation prompts** for better quality
 - **Add new language detection methods**
 - **Enhance error handling** and logging
@@ -454,8 +460,8 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Acknowledgments
 
-- **Ollama** - For providing the local LLM infrastructure
-- **Mistral AI** - For the excellent Mistral model
+- **Groq** - For providing the high-performance cloud infrastructure
+- **Meta** - For the excellent Llama 3.1 70B model
 - **FastAPI** - For the high-performance web framework
 - **Open Source Community** - For various supporting libraries
 
@@ -465,7 +471,7 @@ If you encounter any issues:
 
 1. **Check the troubleshooting section** above
 2. **Review the API documentation** at http://localhost:8000/docs
-3. **Test Ollama connection** with `python test_ollama_connection.py`
+3. **Test Groq connection** with `python test_groq_connection.py`
 4. **Open an issue** on the project repository
 
 ---

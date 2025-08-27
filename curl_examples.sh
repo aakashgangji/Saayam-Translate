@@ -44,9 +44,14 @@ echo -e "\n Testing supported languages (GET request):"
 curl -X GET "http://localhost:8000/supported-languages" \
   | python3 -m json.tool
 
+# Test 7: Groq status (GET request)
+echo -e "\n Testing Groq status (GET request):"
+curl -X GET "http://localhost:8000/groq-status" \
+  | python3 -m json.tool
+
 echo -e "\n All tests completed!"
 echo -e "\n Remember:"
 echo "   - The /translate endpoint requires POST requests"
 echo "   - GET requests to /translate will return 405 Method Not Allowed"
-echo "   - Use GET for /health, /supported-languages, etc."
-echo "   - Make sure Ollama is running: ollama serve"
+echo "   - Use GET for /health, /supported-languages, /groq-status, etc."
+echo "   - Make sure your Groq API key is valid"

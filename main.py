@@ -1,14 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import requests
 import os
 from langdetect import detect, LangDetectException
 from typing import Optional
 import logging
+import groq
+
 # Fallback translator functions
 def create_fallback_response(text: str, detected_lang: str, target_lang: str) -> dict:
-    """Create a fallback response when Ollama is not available."""
+    """Create a fallback response when Groq is not available."""
     fallback_translations = {
         "hello": {
             "Spanish": "hola",
@@ -76,7 +77,7 @@ def create_fallback_response(text: str, detected_lang: str, target_lang: str) ->
         "target_language": target_lang,
         "confidence": 0.1,
         "fallback_used": True,
-        "message": "No fallback translation available. Please ensure Ollama is running."
+        "message": "No fallback translation available. Please ensure Groq API key is valid."
     }
 
 # Configure logging
@@ -86,7 +87,7 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(
     title="Translation API",
-    description="A multilingual translation service using Ollama with Mistral",
+    description="A multilingual translation service using Groq with Llama 3.1 70B",
     version="1.0.0"
 )
 
@@ -99,9 +100,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ollama configuration
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "mistral:latest"  # You can change this to any model you have pulled
+# Groq configuration
+GROQ_API_KEY = "XXX"  # Replace with your actual Groq API key
+GROQ_MODEL = "llama3-70b-8192"  # Llama 3.1 70B model
+
+# Initialize Groq client
+try:
+    groq_client = groq.Groq(api_key=GROQ_API_KEY)
+    # Test the connection immediately
+    test_response = groq_client.chat.completions.create(
+        model=GROQ_MODEL,
+        messages=[{"role": "user", "content": "Hello"}],
+        max_tokens=5,
+        temperature=0.1
+    )
+    logger.info("Groq client initialized and tested successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize Groq client: {str(e)}")
+    logger.error("Please ensure you have the correct Groq client version installed")
+    groq_client = None
 
 # Pydantic models
 class TranslationRequest(BaseModel):
@@ -164,29 +181,30 @@ def detect_language(text: str) -> str:
     except LangDetectException:
         return "Unknown"
 
-def check_ollama_status() -> bool:
-    """Check if Ollama is running and the model is available."""
+def check_groq_status() -> bool:
+    """Check if Groq API is available and working."""
     try:
-        # Check if Ollama is running
-        response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
-        if response.status_code != 200:
+        if groq_client is None:
             return False
         
-        # Check if the model is available
-        models = response.json().get("models", [])
-        model_names = [model.get("name", "") for model in models]
-        # Check for exact match or partial match (e.g., "mistral" matches "mistral:latest")
-        return any(ollama_model in model_name or model_name.startswith(ollama_model.split(':')[0]) 
-                  for model_name in model_names 
-                  for ollama_model in [OLLAMA_MODEL])
-        
+        # Test with a simple completion
+        response = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": "Hello"}],
+            max_tokens=10,
+            temperature=0.1
+        )
+        return True
     except Exception as e:
-        logger.error(f"Ollama status check failed: {str(e)}")
+        logger.error(f"Groq status check failed: {str(e)}")
         return False
 
 def translate_text(text: str, source_lang: str, target_lang: str = "English") -> str:
-    """Translate text using Ollama with Mistral."""
+    """Translate text using Groq with Llama 3.1 70B."""
     try:
+        if groq_client is None:
+            raise Exception("Groq client not initialized")
+        
         prompt = f"""
         You are a professional translator. Translate the following text from {source_lang} to {target_lang}.
         
@@ -195,37 +213,24 @@ def translate_text(text: str, source_lang: str, target_lang: str = "English") ->
         Please provide only the translated text without any additional explanations, quotes, or formatting.
         """
         
-        payload = {
-            "model": OLLAMA_MODEL,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": 0.1,  # Low temperature for more consistent translations
-                "top_p": 0.9,
-                "max_tokens": 500
-            }
-        }
-        
-        response = requests.post(
-            f"{OLLAMA_BASE_URL}/api/generate",
-            json=payload,
-            timeout=30
+        response = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.1,  # Low temperature for more consistent translations
+            top_p=0.9
         )
         
-        if response.status_code == 200:
-            result = response.json()
-            translated_text = result.get("response", "").strip()
-            
-            # Clean up the response - remove quotes if present
-            if translated_text.startswith('"') and translated_text.endswith('"'):
-                translated_text = translated_text[1:-1]
-            
-            if translated_text:
-                return translated_text
-            else:
-                raise Exception("Empty response from Ollama")
+        translated_text = response.choices[0].message.content.strip()
+        
+        # Clean up the response - remove quotes if present
+        if translated_text.startswith('"') and translated_text.endswith('"'):
+            translated_text = translated_text[1:-1]
+        
+        if translated_text:
+            return translated_text
         else:
-            raise Exception(f"Ollama API error: {response.status_code} - {response.text}")
+            raise Exception("Empty response from Groq")
             
     except Exception as e:
         logger.error(f"Translation error: {str(e)}")
@@ -235,36 +240,36 @@ def translate_text(text: str, source_lang: str, target_lang: str = "English") ->
 @app.get("/", response_model=HealthResponse)
 async def root():
     """Health check endpoint."""
-    ollama_status = "running" if check_ollama_status() else "not available"
+    groq_status = "running" if check_groq_status() else "not available"
     return HealthResponse(
         status="healthy",
-        message=f"Translation API is running. Ollama status: {ollama_status}. Use /translate endpoint to translate text."
+        message=f"Translation API is running. Groq status: {groq_status}. Use /translate endpoint to translate text."
     )
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint."""
-    ollama_status = "running" if check_ollama_status() else "not available"
+    groq_status = "running" if check_groq_status() else "not available"
     return HealthResponse(
         status="healthy",
-        message=f"Translation API is running. Ollama status: {ollama_status}"
+        message=f"Translation API is running. Groq status: {groq_status}"
     )
 
 @app.post("/translate", response_model=TranslationResponse)
 async def translate(request: TranslationRequest):
     """
-    Translate text using Ollama with Mistral.
+    Translate text using Groq with Llama 3.1 70B.
     
     - **text**: The text to translate
     - **source_language**: Optional source language (if not provided, will be auto-detected)
     - **target_language**: Target language (defaults to English)
     """
     try:
-        # Check if Ollama is available
-        if not check_ollama_status():
+        # Check if Groq is available
+        if not check_groq_status():
             raise HTTPException(
                 status_code=503, 
-                detail="Ollama service not available. Please ensure Ollama is running and the mistral model is pulled."
+                detail="Groq service not available. Please ensure your Groq API key is valid."
             )
         
         # Detect language if not provided
@@ -288,10 +293,10 @@ async def translate(request: TranslationRequest):
                 message="Source and target languages are the same"
             )
         
-        # Try to translate the text with Ollama
+        # Try to translate the text with Groq
         translated_text = translate_text(request.text, source_language, request.target_language)
         
-        # If Ollama failed, use fallback
+        # If Groq failed, use fallback
         if translated_text is None:
             fallback_response = create_fallback_response(
                 request.text, detected_lang, request.target_language
@@ -304,9 +309,9 @@ async def translate(request: TranslationRequest):
             detected_language=detected_lang,
             source_language=source_language,
             target_language=request.target_language,
-            confidence=0.9,  # Mistral typically provides high-quality translations
+            confidence=0.95,  # Llama 3.1 70B typically provides high-quality translations
             fallback_used=False,
-            message="Translation completed successfully using Ollama with Mistral"
+            message="Translation completed successfully using Groq with Llama 3.1 70B"
         )
         
     except Exception as e:
@@ -354,24 +359,22 @@ async def get_supported_languages():
         "Ligurian", "Neapolitan", "Sicilian", "Calabrian"
     ]
 
-@app.get("/ollama-status")
-async def check_ollama_status_endpoint():
+@app.get("/groq-status")
+async def check_groq_status_endpoint():
     """
-    Check Ollama service status and model availability.
+    Check Groq service status and model availability.
     """
     try:
-        is_available = check_ollama_status()
+        is_available = check_groq_status()
         return {
-            "ollama_available": is_available,
-            "model": OLLAMA_MODEL,
-            "base_url": OLLAMA_BASE_URL,
+            "groq_available": is_available,
+            "model": GROQ_MODEL,
             "status": "running" if is_available else "not available"
         }
     except Exception as e:
         return {
-            "ollama_available": False,
-            "model": OLLAMA_MODEL,
-            "base_url": OLLAMA_BASE_URL,
+            "groq_available": False,
+            "model": GROQ_MODEL,
             "status": "error",
             "error": str(e)
         }
@@ -379,8 +382,7 @@ async def check_ollama_status_endpoint():
 if __name__ == "__main__":
     import uvicorn
     print("Starting Translation API")
-    print(f"Ollama URL: {OLLAMA_BASE_URL}")
-    print(f"Model: {OLLAMA_MODEL}")
+    print(f"Groq Model: {GROQ_MODEL}")
     print("API will be available at: http://localhost:8000")
     print("API docs at: http://localhost:8000/docs")
     uvicorn.run(app, host="0.0.0.0", port=8000)

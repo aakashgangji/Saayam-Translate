@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple script to start the Ollama Translation API
+Simple script to start the Groq Translation API
 """
 
 import subprocess
@@ -17,7 +17,8 @@ def install_requirements():
         "requests",
         "langdetect",
         "pydantic",
-        "python-multipart"
+        "python-multipart",
+        "groq"
     ]
     
     for package in packages:
@@ -31,27 +32,32 @@ def install_requirements():
     
     return True
 
-def check_ollama():
-    """Check if Ollama is running and Mistral is available"""
-    print("Checking Ollama setup...")
+def check_groq():
+    """Check if Groq API key is valid and model is available"""
+    print("Checking Groq setup...")
     
     try:
-        import requests
-        response = requests.get("http://localhost:11434/api/tags", timeout=5)
-        if response.status_code == 200:
-            models = response.json().get("models", [])
-            model_names = [model.get("name", "") for model in models]
-            if "mistral" in str(model_names).lower():
-                print("Ollama is running and Mistral model is available")
-                return True
-            else:
-                print("Mistral model not found")
-                return False
+        import groq
+        api_key = "XXX"  # Replace with your actual Groq API key
+        groq_client = groq.Groq(api_key=api_key)
+        
+        # Test with a simple completion
+        response = groq_client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[{"role": "user", "content": "Hello"}],
+            max_tokens=10,
+            temperature=0.1
+        )
+        
+        if response and response.choices:
+            print("Groq API is working and Llama 3.1 70B model is available")
+            return True
         else:
-            print("Ollama API not responding")
+            print("Groq API returned empty response")
             return False
     except Exception as e:
-        print(f"Error checking Ollama: {e}")
+        print(f"Error checking Groq: {e}")
+        print("Please ensure your Groq API key is valid")
         return False
 
 def start_api():
@@ -60,7 +66,7 @@ def start_api():
     
     try:
         # Import and run the API
-        from main_ollama import app
+        from main import app
         import uvicorn
         
         print("Translation API started successfully!")
@@ -80,7 +86,7 @@ def start_api():
 
 def main():
     """Main function"""
-    print("Ollama Translation API Starter")
+    print("Groq Translation API Starter")
     print("=" * 40)
     
     # Check if requirements are installed
@@ -90,6 +96,7 @@ def main():
         import requests
         import langdetect
         import pydantic
+        import groq
         print("All required packages are already installed")
     except ImportError:
         print("Some packages are missing, installing...")
@@ -97,10 +104,10 @@ def main():
             print("Failed to install requirements")
             return False
     
-    # Check Ollama
-    if not check_ollama():
-        print("Ollama setup issue")
-        print("Please ensure Ollama is running and Mistral model is available")
+    # Check Groq
+    if not check_groq():
+        print("Groq setup issue")
+        print("Please ensure your Groq API key is valid")
         return False
     
     # Start the API
