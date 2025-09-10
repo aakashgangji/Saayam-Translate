@@ -378,7 +378,7 @@ GROQ_MODEL = "llama3-70b-8192"
 - **Cloud Infrastructure**: Leverages Groq's secure infrastructure
 - **Open Source**: Transparent and auditable code
 
-### ⚠️ Important Security Note
+### Important Security Note
 Before using this API, make sure to:
 1. Replace all instances of "XXX" with your actual Groq API key
 2. Never commit your API key to version control
